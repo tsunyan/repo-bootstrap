@@ -5,11 +5,13 @@ import contextlib
 import io
 import json
 import unittest
+from unittest import mock
 
 import actions
 import bootstrap
 import github_api as gh
 import policy
+import validator
 from helpers import FakeGitHub, http
 
 bootstrap.SETTLE_DELAY = 0
@@ -86,11 +88,22 @@ class Commands(unittest.TestCase):
 
     def test_plan_makes_no_writes(self):
         fake = FakeGitHub()
-        code, rep = self.run_cli(fake, ["plan", "--name", "demo-cli", "--type", "node"])
+        with mock.patch.object(validator, "gitleaks_path", return_value=None):
+            code, rep = self.run_cli(fake, ["plan", "--name", "demo-cli", "--type", "node"])
         self.assertEqual(fake.writes, [])
-        self.assertEqual(rep["outcome"], "approval_required")
         self.assertEqual(rep["approvals_required"], ["create", "public", "license"])
-        self.assertIn(code, (0, 1))
+        # Without gitleaks a public repository must not pass the local gate.
+        failed = {c["id"] for c in rep["failures"]}
+        self.assertEqual(failed, {"secrets.scan"})
+        self.assertEqual((rep["outcome"], code), ("failed", 1))
+
+    def test_plan_without_findings_waits_for_approval(self):
+        fake = FakeGitHub()
+        clean = validator.Check("secrets.scan", "verified", "stubbed")
+        with mock.patch.object(validator, "scan_secrets", return_value=clean):
+            code, rep = self.run_cli(fake, ["plan", "--name", "demo-cli", "--type", "node"])
+        self.assertEqual(fake.writes, [])
+        self.assertEqual((rep["outcome"], code), ("approval_required", 0))
 
     def test_verify_makes_no_writes(self):
         fake = FakeGitHub(repo_exists=True)
