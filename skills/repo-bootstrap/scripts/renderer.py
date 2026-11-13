@@ -96,15 +96,28 @@ def tidy(text: str, path: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
+_BILINGUAL_RE = re.compile(r"(?s)\A(<!--.*?-->\n+)?(## 日本語\n.*?)\n+---\n+(## English\n.*)\Z")
+
+
+def english_first(text: str) -> str:
+    """Put the ``## English`` section of a bilingual document before ``## 日本語``."""
+    m = _BILINGUAL_RE.match(text)
+    if not m:
+        raise RenderError("Bilingual document must be '## 日本語', '---', then '## English'")
+    comment = (m.group(1) or "").replace("日本語 / English", "English / 日本語")
+    return f"{comment}{m.group(3).rstrip()}\n\n---\n\n{m.group(2).rstrip()}\n"
+
+
 def drop_missing_commands(text: str, lang: str) -> str:
     """Replace command blocks that only hold NO_COMMAND with a localised note.
 
-    For bilingual files (lang == "both") the Japanese section comes before
-    the ``## English`` heading.
+    Bilingual templates (lang "ja-en" or "en-ja") always hold the Japanese
+    section before the ``## English`` heading; ``english_first`` reorders them
+    afterwards.
     """
     if NO_COMMAND not in text:
         return text
-    if lang == "both":
+    if lang in ("ja-en", "en-ja"):
         marker = "\n## English\n"
         if marker not in text:
             raise RenderError("Bilingual document has no '## English' section")

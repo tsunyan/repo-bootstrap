@@ -52,12 +52,13 @@ class LocaleMatrix(unittest.TestCase):
                     ".github/ISSUE_TEMPLATE/bug_report.yml",
                 ):
                     self.assertIn(doc, paths)
-                self.assertEqual("README.en.md" in paths, locale == "both")
+                self.assertEqual("README.en.md" in paths, locale == "ja-en")
+                self.assertEqual("README.ja.md" in paths, locale == "en-ja")
                 self.assertEqual(".github/workflows/ci.yml" in paths, ptype != "generic")
                 self.assertEqual(".github/workflows/secret-scan.yml" in paths, vis == "private")
                 self.assertEqual("LICENSE" in paths, vis == "public")
                 count += 1
-        self.assertEqual(count, 30)  # 24 runnable patterns + 6 generic
+        self.assertEqual(count, 40)  # 4 locales x 2 visibilities x 5 types
 
     def test_english_request_keeps_identifiers(self):
         """T18: en documents contain no Japanese, but commands and paths stay as they are."""
@@ -67,15 +68,41 @@ class LocaleMatrix(unittest.TestCase):
         self.assertIn("python -m demo_cli", by["README.md"])
         self.assertIn("pytest -q", by["AGENTS.md"])
 
-    def test_both_has_cross_links_and_sections(self):
+    def test_ja_en_puts_japanese_first(self):
         """T19."""
-        _, _, files = helpers.plan_files(docs_locale="both", visibility="public", project_type="node")
+        _, _, files = helpers.plan_files(docs_locale="ja-en", visibility="public", project_type="node")
         by = {f.path: f.content for f in files}
+        self.assertNotIn("README.ja.md", by)
+        self.assertIn("## 概要", by["README.md"])
         self.assertIn("[English](README.en.md)", by["README.md"])
         self.assertIn("[日本語](README.md)", by["README.en.md"])
         for p in validator.BILINGUAL:
-            self.assertIn("## 日本語", by[p])
-            self.assertIn("\n## English\n", by[p])
+            self.assertLess(by[p].index("## 日本語"), by[p].index("## English"), p)
+        self.assertIn('name: "バグ報告 / Bug report"', by[".github/ISSUE_TEMPLATE/bug_report.yml"])
+
+    def test_en_ja_puts_english_first(self):
+        _, _, files = helpers.plan_files(docs_locale="en-ja", visibility="public", project_type="node")
+        by = {f.path: f.content for f in files}
+        self.assertNotIn("README.en.md", by)
+        self.assertIn("## Overview", by["README.md"])
+        self.assertIn("[日本語](README.ja.md)", by["README.md"])
+        self.assertIn("[English](README.md)", by["README.ja.md"])
+        for p in validator.BILINGUAL:
+            text = by[p]
+            self.assertLess(text.index("## English"), text.index("## 日本語"), p)
+            self.assertTrue(text.startswith("<!-- English / 日本語"), p)
+        self.assertIn('name: "Bug report / バグ報告"', by[".github/ISSUE_TEMPLATE/bug_report.yml"])
+        self.assertIn("docs_locale: en-ja", by[".repo-bootstrap.yml"])
+
+    def test_both_is_an_alias_of_ja_en(self):
+        req, _, _ = helpers.plan_files(docs_locale="both", visibility="public")
+        self.assertEqual(req.docs_locale, "ja-en")
+
+    def test_wrong_section_order_is_caught(self):
+        _, _, files = helpers.plan_files(docs_locale="ja-en", visibility="public")
+        check = validator.check_locale(files, "en-ja")
+        self.assertEqual(check.status, "failed")
+        self.assertIn("expected en-ja", check.detail)
 
     def test_generic_writes_no_command_fences(self):
         """design 9.5: generic has no shell fences for commands that do not exist."""

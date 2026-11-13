@@ -19,6 +19,7 @@
 - adopt で既存のプロジェクト（マニフェストあり）に CI を足すときは、コマンドが実在するか分からないので既定では作らず manual_action にする。`--ci on` で作る（node は scripts の有無を確かめる）
 - CodeQL default setup: 設計書は `state=configured` を確認するだけだったが、初回 push の直後に設定すると GitHub の言語検出が追いつかず、対象が `actions` だけになることがあった（このスキルの配布用リポジトリで実際に起きた）。対象言語をファイルの拡張子から決めて `languages` で明示し、すべて入っているときだけ verified にする
 - 文書の言語と公開範囲: 設計書は「解決する」とだけ書き、既定値もあった。初版のスキルは指定がないと既定値を黙って使い、配布用リポジトリを作ったときも利用者に言語を尋ねなかった。この 2 つは一次パラメータなので利用者に選んでもらう。plan は選ばれていない入力を `choices_required`（`outcome: choice_required`）として既定値つきで出し、create と adopt は指定がなければ終了コード 2 で止まる（adopt は `.repo-bootstrap.yml` の記録があればそれを使う）
+- 併記の主の言語: 設計書の `both` は日本語が主の形だけだった。英語を主にしたい場合（GitHub のトップに出る README.md を英語にしたい OSS など）に対応できないので、`ja-en`（日本語が主。README.md と README.en.md）と `en-ja`（英語が主。README.md と README.ja.md）に分けた。主の言語で、併記ファイルの節の順、Issue のラベルの順、GitHub の説明文、CodeRabbit のレビュー言語が決まる。`both` は `ja-en` の別名として受け付ける
 - Gitleaks の Action はテンプレートどおり `gitleaks/gitleaks-action`（個人アカウントは無料。組織ではライセンスキーが要る）
 
 ## 未実装（設計書の Phase 3 以降）

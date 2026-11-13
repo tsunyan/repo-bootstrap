@@ -100,7 +100,7 @@ class Commands(unittest.TestCase):
     def test_plan_without_findings_waits_for_approval(self):
         fake = FakeGitHub()
         clean = validator.Check("secrets.scan", "verified", "stubbed")
-        argv = ["plan", "--name", "demo-cli", "--type", "node", "--docs-locale", "both", "--visibility", "public"]
+        argv = ["plan", "--name", "demo-cli", "--type", "node", "--docs-locale", "en-ja", "--visibility", "public"]
         with mock.patch.object(validator, "scan_secrets", return_value=clean):
             code, rep = self.run_cli(fake, argv)
         self.assertEqual(fake.writes, [])
@@ -117,7 +117,7 @@ class Commands(unittest.TestCase):
         self.assertEqual(
             rep["choices_required"],
             [
-                {"input": "docs_locale", "default": "both", "options": ["ja", "en", "both"]},
+                {"input": "docs_locale", "default": "ja-en", "options": ["ja", "en", "ja-en", "en-ja"]},
                 {"input": "visibility", "default": "public", "options": ["public", "private"]},
             ],
         )

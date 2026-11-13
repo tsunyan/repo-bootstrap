@@ -58,7 +58,11 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--owner", help="GitHub user (default: the authenticated user)")
         sp.add_argument("--path", help="Local directory (default: ./NAME)")
         sp.add_argument("--type", dest="project_type", choices=policy.PROJECT_TYPES)
-        sp.add_argument("--docs-locale", choices=policy.LOCALES)
+        sp.add_argument(
+            "--docs-locale",
+            choices=policy.LOCALES + tuple(policy.LOCALE_ALIASES),
+            help="ja, en, ja-en (Japanese first), en-ja (English first); both = ja-en",
+        )
         sp.add_argument("--visibility", choices=policy.VISIBILITIES)
         sp.add_argument("--repo-kind", choices=policy.REPO_KINDS)
         sp.add_argument("--license", help="MIT or none (Apache-2.0 is Phase 3)")
@@ -191,7 +195,7 @@ def request_from(args, mode: str, profile: dict | None = None) -> policy.Bootstr
 
 # Primary inputs (design §1.1-1). A default may be shown in plan, but create and
 # adopt never pick one silently: the user chooses, and the agent passes the choice.
-CHOICES = {"docs_locale": ("ja", "en", "both"), "visibility": policy.VISIBILITIES}
+CHOICES = {"docs_locale": policy.LOCALES, "visibility": policy.VISIBILITIES}
 CHOICE_FLAGS = {"docs_locale": "--docs-locale", "visibility": "--visibility"}
 
 
@@ -503,8 +507,9 @@ def remote_phase(ctx: Ctx, *, create_repo: bool, do_push: bool) -> None:
             if not create_repo:
                 rep.add("repo.exists", "failed", f"{o}/{n} does not exist on GitHub")
                 return
-            desc = r.description_en if r.docs_locale == "en" else r.description_ja
-            desc = desc or scaffold.default_texts(r)["PROJECT_DESCRIPTION_" + ("EN" if r.docs_locale == "en" else "JA")]
+            primary = policy.primary_language(r.docs_locale)
+            desc = getattr(r, f"description_{primary}")
+            desc = desc or scaffold.default_texts(r)["PROJECT_DESCRIPTION_" + primary.upper()]
             client.create_user_repo(n, private=r.visibility == "private", description=desc)
             rep.add("repo.create", "applied", f"Created empty {r.visibility} repository {o}/{n}")
             repo = client.repo(o, n)

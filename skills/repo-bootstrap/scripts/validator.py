@@ -12,6 +12,7 @@ import tomllib
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import policy
 import renderer
 from report import Check
 from scaffold import PlannedFile
@@ -25,6 +26,7 @@ HEADING_RE = re.compile(r"^#{1,3} ", re.MULTILINE)
 DOC_PATHS = (
     "README.md",
     "README.en.md",
+    "README.ja.md",
     "AGENTS.md",
     "SECURITY.md",
     "CONTRIBUTING.md",
@@ -151,53 +153,80 @@ def check_links(files: list[PlannedFile], target: Path | None) -> Check:
     return Check("files.links", "verified", "Relative links in Markdown files resolve")
 
 
-def _sections(text: str) -> tuple[str, str]:
-    head, _, tail = text.partition("\n## English\n")
-    return head, tail
+LANG_HEADING_RE = re.compile(r"^## (日本語|English)$", re.MULTILINE)
+
+
+def _sections(text: str) -> tuple[str, str, str]:
+    """(Japanese section, English section, order) of a bilingual document.
+
+    Each section starts at its language heading. order is "ja-en", "en-ja", or
+    "" when the two headings are not both present exactly once.
+    """
+    marks = [(m.start(), m.group(1)) for m in LANG_HEADING_RE.finditer(text)]
+    if sorted(lang for _, lang in marks) != ["English", "日本語"]:
+        return "", "", ""
+    (p1, l1), (p2, _) = marks
+    first, second = text[p1:p2], text[p2:]
+    if l1 == "日本語":
+        return first, second, "ja-en"
+    return second, first, "en-ja"
 
 
 def check_locale(files: list[PlannedFile], locale: str) -> Check:
     by = {f.path: f.content for f in files}
     problems = []
     docs = {p: by[p] for p in DOC_PATHS if p in by}
-    if locale == "en":
+    if locale in ("ja", "en"):
+        for extra in ("README.en.md", "README.ja.md"):
+            if extra in by:
+                problems.append(f"{extra} exists in {locale} mode")
         for p, t in docs.items():
-            if JA_CHARS_RE.search(t):
+            if locale == "en" and JA_CHARS_RE.search(t):
                 problems.append(f"{p}: contains Japanese text")
-        if "README.en.md" in by:
-            problems.append("README.en.md exists in en mode")
-    elif locale == "ja":
-        for p, t in docs.items():
-            if not JA_CHARS_RE.search(t):
+            if locale == "ja" and not JA_CHARS_RE.search(t):
                 problems.append(f"{p}: has no Japanese text")
-            if "\n## English\n" in t:
+            if locale == "ja" and "\n## English\n" in t:
                 problems.append(f"{p}: has an English section in ja mode")
     else:
-        if "README.en.md" not in by:
-            problems.append("README.en.md is missing")
+        paths = policy.readme_paths(locale)
+        ja_path, en_path = paths["ja"], paths["en"]
+        stray = "README.ja.md" if locale == "ja-en" else "README.en.md"
+        if stray in by:
+            problems.append(f"{stray} exists in {locale} mode")
+        if ja_path not in by or en_path not in by:
+            problems.append(f"{locale} needs {ja_path} (Japanese) and {en_path} (English)")
         else:
-            if "(README.en.md)" not in by.get("README.md", ""):
-                problems.append("README.md does not link to README.en.md")
-            if "(README.md)" not in by["README.en.md"]:
-                problems.append("README.en.md does not link to README.md")
-            if JA_CHARS_RE.search(by["README.en.md"].replace("[日本語](README.md)", "")):
-                problems.append("README.en.md contains Japanese text besides the language link")
+            if f"({en_path})" not in by[ja_path]:
+                problems.append(f"{ja_path} does not link to {en_path}")
+            if f"({ja_path})" not in by[en_path]:
+                problems.append(f"{en_path} does not link to {ja_path}")
+            if not JA_CHARS_RE.search(by[ja_path]):
+                problems.append(f"{ja_path}: has no Japanese text")
+            if JA_CHARS_RE.search(by[en_path].replace(f"[日本語]({ja_path})", "")):
+                problems.append(f"{en_path} contains Japanese text besides the language link")
         for p in BILINGUAL:
             if p not in by:
                 continue
-            ja, en = _sections(by[p])
-            if "## 日本語" not in ja or not en:
-                problems.append(f"{p}: needs both '## 日本語' and '## English' sections")
+            ja, en, order = _sections(by[p])
+            if not order:
+                problems.append(f"{p}: needs one '## 日本語' and one '## English' section")
                 continue
+            if order != locale:
+                problems.append(f"{p}: sections are in {order} order, expected {locale}")
             if not JA_CHARS_RE.search(ja):
                 problems.append(f"{p}: Japanese section has no Japanese text")
             if JA_CHARS_RE.search(en):
                 problems.append(f"{p}: English section contains Japanese text")
-            if len(HEADING_RE.findall(ja)) != len(HEADING_RE.findall(en)) + 1:  # +1: '## 日本語' itself
+            if len(HEADING_RE.findall(ja)) != len(HEADING_RE.findall(en)):
                 problems.append(f"{p}: Japanese and English sections have different heading counts")
         bug = by.get(".github/ISSUE_TEMPLATE/bug_report.yml", "")
+        first = "English" if locale == "en-ja" else "日本語"
         if bug and " / " not in bug:
             problems.append("bug_report.yml labels are not bilingual")
+        elif bug:
+            name = next((ln for ln in bug.splitlines() if ln.startswith("name:")), "")
+            if bool(JA_CHARS_RE.search(name.split(" / ")[0])) != (first == "日本語"):
+                problems.append(f"bug_report.yml labels should start with {first}")
     if problems:
         return Check("files.locale", "failed", "; ".join(problems))
     return Check("files.locale", "verified", f"Documents follow docs_locale={locale}")

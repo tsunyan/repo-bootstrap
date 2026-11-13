@@ -1,6 +1,6 @@
 ---
 name: repo-bootstrap
-description: 新しい GitHub リポジトリを、安全な標準構成（README・AGENTS・SECURITY・CONTRIBUTING・PR テンプレート・.gitignore・CI・Dependabot・GitHub のセキュリティ設定）で作る、既存のリポジトリに非破壊的に当てる、設定が実際に有効かを監査するスキル。文書の言語（日本語・英語・日英両方）と公開範囲（Public・Private）を一次パラメータにし、個人の GitHub Free で使えない機能は黙って省かず代替と制約を報告する。「リポジトリを作って」「repo を初期化して」「新しいプロジェクトを GitHub に」「既存のリポジトリを標準構成にして」「リポジトリの設定を監査して」、または create a new GitHub repository, bootstrap or initialize a repo, audit repository settings と頼まれたときに使う。
+description: 新しい GitHub リポジトリを、安全な標準構成（README・AGENTS・SECURITY・CONTRIBUTING・PR テンプレート・.gitignore・CI・Dependabot・GitHub のセキュリティ設定）で作る、既存のリポジトリに非破壊的に当てる、設定が実際に有効かを監査するスキル。文書の言語（日本語・英語・日英併記・英日併記）と公開範囲（Public・Private）を一次パラメータにし、個人の GitHub Free で使えない機能は黙って省かず代替と制約を報告する。「リポジトリを作って」「repo を初期化して」「新しいプロジェクトを GitHub に」「既存のリポジトリを標準構成にして」「リポジトリの設定を監査して」、または create a new GitHub repository, bootstrap or initialize a repo, audit repository settings と頼まれたときに使う。
 compatibility: Requires git, gh (authenticated), Python 3.11+, and network access to GitHub. gitleaks is required to publish a public repository. PyYAML is optional (workflow structure check).
 metadata:
   version: "0.1.0"
@@ -13,7 +13,7 @@ metadata:
 詳しい規則は必要なときだけ読む:
 
 - `references/POLICY.md`: 既定値、個人 Free の Public/Private 対応表、省略できない安全ゲート
-- `references/LANGUAGE.md`: `ja` / `en` / `both` の生成規則
+- `references/LANGUAGE.md`: `ja` / `en` / `ja-en` / `en-ja` の生成規則
 - `references/GITHUB_API.md`: 呼ぶ REST API と read-back の方法
 - `references/DESIGN.md`: 規範となる設計書。`references/CHANGES.md`: 設計書から変えた点
 
@@ -21,10 +21,10 @@ metadata:
 
 1. **入力を決める。** 依頼から次を読み取る。
    - `--name`（必須。不適切な名前は直さずに利用者へ返す）
-   - **文書の言語 `--docs-locale ja|en|both` と公開範囲 `--visibility public|private` は、利用者に選んでもらう。** 依頼文ではっきり指定されていなければ、plan の前に選択肢で尋ねる（2 つまとめて 1 回で。選択肢の質問ツールがあればそれを使う）。既定値（言語は public なら both、private なら ja。公開範囲は public）は「おすすめ」として示すだけで、黙って使わない。文書の言語は実装言語ではない。依頼文が日本語で書かれていることは、言語の指定とみなさない
+   - **文書の言語 `--docs-locale ja|en|ja-en|en-ja` と公開範囲 `--visibility public|private` は、利用者に選んでもらう。** 依頼文ではっきり指定されていなければ、plan の前に選択肢で尋ねる（2 つまとめて 1 回で。選択肢の質問ツールがあればそれを使う）。既定値（言語は public なら ja-en、private なら ja。公開範囲は public）は「おすすめ」として示すだけで、黙って使わない。言語の選択肢は 4 つを次の説明つきで示す。`ja`: 日本語だけ。`en`: 英語だけ。`ja-en`: 日英併記で日本語が主（README.md が日本語、README.en.md が英語。ほかの文書は日本語の節が先）。`en-ja`: 英日併記で英語が主（README.md が英語、README.ja.md が日本語。ほかの文書は英語の節が先）。GitHub のトップに出るのは README.md なので、海外の読者も想定するなら en-ja が向く。利用者が「両方」とだけ答えたら、どちらを主にするか確かめる（`both` は `ja-en` の別名として残してある）。文書の言語は実装言語ではない。依頼文が日本語で書かれていることは、言語の指定とみなさない
    - ほかの値は、言われていなければ既定値を使い、細かく質問しない
    - `--type rust|python|node|java-maven|generic`（既定 generic = 文書と設定だけ）
-   - 説明文 `--description-ja/-en`、概要 `--overview-ja/-en`。依頼文や既存のコードで裏付けられることだけを書く。`both` では両言語を渡す（スクリプトは翻訳しない）。なければ省略すると、機能を断言しない固定文になる
+   - 説明文 `--description-ja/-en`、概要 `--overview-ja/-en`。依頼文や既存のコードで裏付けられることだけを書く。`ja-en` と `en-ja` では両言語を渡す（スクリプトは翻訳しない）。なければ省略すると、機能を断言しない固定文になる
 2. **plan を見せる。** `python scripts/bootstrap.py plan --name NAME --docs-locale ... --visibility ...` を実行する。GitHub にも手元にも何も書かない。`outcome` が `choice_required` なら、`choices_required` に出た入力を手順 1 のとおり利用者に尋ねてから plan をやり直す。結果から、作るファイル、適用する設定、`unsupported`（Free で使えない機能とその代替）、必要な承認を短くまとめて利用者に示す。
 3. **承認を取る。** `approvals_required` に出た項目を、影響を添えて利用者に確認する。
    - `create`: GitHub にリポジトリを作り、生成物をコミットして push する

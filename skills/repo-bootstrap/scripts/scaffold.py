@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+import policy
 import renderer
 from policy import BootstrapRequest, FeatureDecision, decision
 
@@ -316,7 +317,7 @@ def build_variables(r: BootstrapRequest, pins: dict[str, dict]) -> dict[str, str
         "SECRET_SCAN": r.secret_scan,
         "CI": r.ci,
         "SECURITY_CONTACT_KIND": r.security_contact,
-        "CODERABBIT_REVIEW_LANGUAGE": "en-US" if r.docs_locale == "en" else "ja-JP",
+        "CODERABBIT_REVIEW_LANGUAGE": "en-US" if policy.primary_language(r.docs_locale) == "en" else "ja-JP",
         "NODE_LTS_MAJOR": r.node_version,
         "PYTHON_VERSION": r.python_version,
         "JAVA_LTS_MAJOR": r.java_version,
@@ -351,6 +352,9 @@ def build_variables(r: BootstrapRequest, pins: dict[str, dict]) -> dict[str, str
     v["SECURITY_CONTACT_JA"] = renderer.render(sc[f"{kind}_ja"], email_vars)
     v["SECURITY_CONTACT_EN"] = renderer.render(sc[f"{kind}_en"], email_vars)
 
+    if policy.is_bilingual(r.docs_locale):
+        paths = policy.readme_paths(r.docs_locale)
+        v["README_JA_PATH"], v["README_EN_PATH"] = paths["ja"], paths["en"]
     v.update(content[r.docs_locale])
     v.update(issue[r.docs_locale])
 
@@ -390,18 +394,25 @@ def renders_coderabbit_config(r: BootstrapRequest, decisions: list[FeatureDecisi
 
 
 def _doc_entries(locale: str) -> list[tuple[str, str, str]]:
-    """(template, output path, language of the file)."""
-    lang = "both" if locale == "both" else locale
-    entries = [
-        (f"{locale}/README.md.tpl", "README.md", "ja" if locale == "both" else locale),
-        (f"{locale}/AGENTS.md.tpl", "AGENTS.md", lang),
-        (f"{locale}/SECURITY.md.tpl", "SECURITY.md", lang),
-        (f"{locale}/CONTRIBUTING.md.tpl", "CONTRIBUTING.md", lang),
-        (f"{locale}/PULL_REQUEST_TEMPLATE.md.tpl", ".github/PULL_REQUEST_TEMPLATE.md", lang),
+    """(template, output path, language of the file).
+
+    Bilingual locales use the templates in ``both/`` (Japanese section first);
+    the language of a combined file is the locale itself, so en-ja can reorder it.
+    """
+    if not policy.is_bilingual(locale):
+        readmes = [(f"{locale}/README.md.tpl", "README.md", locale)]
+        tdir = locale
+    else:
+        paths = policy.readme_paths(locale)
+        readmes = [("both/README.md.tpl", paths["ja"], "ja"), ("both/README.en.md.tpl", paths["en"], "en")]
+        readmes.sort(key=lambda e: e[1] != "README.md")  # README.md first
+        tdir = "both"
+    return readmes + [
+        (f"{tdir}/AGENTS.md.tpl", "AGENTS.md", locale),
+        (f"{tdir}/SECURITY.md.tpl", "SECURITY.md", locale),
+        (f"{tdir}/CONTRIBUTING.md.tpl", "CONTRIBUTING.md", locale),
+        (f"{tdir}/PULL_REQUEST_TEMPLATE.md.tpl", ".github/PULL_REQUEST_TEMPLATE.md", locale),
     ]
-    if locale == "both":
-        entries.insert(1, ("both/README.en.md.tpl", "README.en.md", "en"))
-    return entries
 
 
 def _starter_entries(r: BootstrapRequest, v: dict[str, str]) -> list[tuple[str, str]]:
@@ -464,6 +475,8 @@ def _render_file(template: str, path: str, v: dict[str, str], *, lang: str | Non
     text = renderer.render(_read(template), v, user_vars=USER_VARS, context=renderer.context_for(path))
     if lang:
         text = renderer.drop_missing_commands(text, lang)
+        if lang == "en-ja":
+            text = renderer.english_first(text)
     if renderer.NO_COMMAND in text:
         raise ScaffoldError(f"{path}: a command placeholder is left in a place that cannot hold a note")
     return renderer.tidy(text, path)

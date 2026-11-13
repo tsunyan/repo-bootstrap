@@ -7,9 +7,13 @@
     "DOCS_LANGUAGE_POLICY_JA": "英語で記述してください",
     "DOCS_LANGUAGE_POLICY_EN": "in English"
   },
-  "both": {
-    "DOCS_LANGUAGE_POLICY_JA": "日本語と英語の両方で内容を一致させて記述してください",
-    "DOCS_LANGUAGE_POLICY_EN": "in both Japanese and English with equivalent meaning"
+  "ja-en": {
+    "DOCS_LANGUAGE_POLICY_JA": "日本語と英語の両方で内容を一致させて記述してください（日本語が主。README.md は日本語、README.en.md は英語で、ほかの文書は日本語の節を先に置く）",
+    "DOCS_LANGUAGE_POLICY_EN": "in both Japanese and English with equivalent meaning (Japanese first: README.md is Japanese, README.en.md is English, and other documents put the Japanese section first)"
+  },
+  "en-ja": {
+    "DOCS_LANGUAGE_POLICY_JA": "英語と日本語の両方で内容を一致させて記述してください（英語が主。README.md は英語、README.ja.md は日本語で、ほかの文書は英語の節を先に置く）",
+    "DOCS_LANGUAGE_POLICY_EN": "in both English and Japanese with equivalent meaning (English first: README.md is English, README.ja.md is Japanese, and other documents put the English section first)"
   },
   "security_contact": {
     "public_ja": "GitHubの当該リポジトリの **Security → Advisories → Report a vulnerability** から、非公開で報告してください。",

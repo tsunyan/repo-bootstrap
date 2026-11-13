@@ -14,7 +14,13 @@ from dataclasses import asdict, dataclass, field
 SKILL_VERSION = "0.1.0"
 SCHEMA_VERSION = 1
 
-LOCALES = ("en", "ja", "both")
+# Bilingual modes name the primary language first: ja-en puts Japanese first
+# (README.md is Japanese, README.en.md English); en-ja puts English first
+# (README.md is English, README.ja.md Japanese).
+LOCALES = ("ja", "en", "ja-en", "en-ja")
+BILINGUAL_LOCALES = ("ja-en", "en-ja")
+LOCALE_ALIASES = {"both": "ja-en"}  # 0.1.0 name; kept so existing profiles still load
+
 VISIBILITIES = ("public", "private")
 PROJECT_TYPES = ("rust", "python", "node", "java-maven", "generic")
 REPO_KINDS = ("oss", "personal", "internal")
@@ -142,7 +148,8 @@ def resolve(
 
     r.visibility = _choose(r.visibility or "public", VISIBILITIES, "visibility")
     public = r.visibility == "public"
-    r.docs_locale = _choose(r.docs_locale or ("both" if public else "ja"), LOCALES, "docs_locale")
+    locale = LOCALE_ALIASES.get(r.docs_locale, r.docs_locale)
+    r.docs_locale = _choose(locale or ("ja-en" if public else "ja"), LOCALES, "docs_locale")
     r.project_type = _choose(r.project_type or "generic", PROJECT_TYPES, "project_type")
     r.repo_kind = _choose(r.repo_kind or ("oss" if public else "internal"), REPO_KINDS, "repo_kind")
 
@@ -192,12 +199,26 @@ def resolve(
     return r
 
 
+def is_bilingual(locale: str) -> bool:
+    return locale in BILINGUAL_LOCALES
+
+
+def primary_language(locale: str) -> str:
+    """ja or en: the language of README.md and of the first section."""
+    return "en" if locale in ("en", "en-ja") else "ja"
+
+
+def readme_paths(locale: str) -> dict[str, str]:
+    """README file per language for a bilingual locale."""
+    return {"ja": "README.md", "en": "README.en.md"} if locale == "ja-en" else {"ja": "README.ja.md", "en": "README.md"}
+
+
 def _require_both_languages(r: BootstrapRequest) -> None:
     """Text written in one language must also be given in the other when both are rendered.
 
     The skill never machine-translates; the agent supplies both strings.
     """
-    needs = {"ja": ("ja",), "en": ("en",), "both": ("ja", "en")}[r.docs_locale]
+    needs = ("ja", "en") if is_bilingual(r.docs_locale) else (r.docs_locale,)
     # Package metadata (Cargo.toml, package.json, ...) always uses the English description.
     if r.project_type != "generic":
         needs = tuple(sorted(set(needs) | {"en"}))

@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}}
 
-[English](README.en.md)
+[English]({{README_EN_PATH}})
 
 > {{PROJECT_DESCRIPTION_JA}}
 

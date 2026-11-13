@@ -20,7 +20,7 @@ class VisibilityFallback(unittest.TestCase):
         ):
             self.assertEqual(decision(d, fid).action, "apply", fid)
         self.assertEqual(decision(d, "gitleaks").action, "skipped_by_policy")
-        self.assertEqual(req.docs_locale, "both")
+        self.assertEqual(req.docs_locale, "ja-en")
         self.assertEqual(req.license, "MIT")
 
     def test_private_free_never_claims_hosted_features(self):
