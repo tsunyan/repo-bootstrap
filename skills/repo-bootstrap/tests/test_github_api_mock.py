@@ -100,10 +100,37 @@ class Commands(unittest.TestCase):
     def test_plan_without_findings_waits_for_approval(self):
         fake = FakeGitHub()
         clean = validator.Check("secrets.scan", "verified", "stubbed")
+        argv = ["plan", "--name", "demo-cli", "--type", "node", "--docs-locale", "both", "--visibility", "public"]
+        with mock.patch.object(validator, "scan_secrets", return_value=clean):
+            code, rep = self.run_cli(fake, argv)
+        self.assertEqual(fake.writes, [])
+        self.assertEqual(rep["choices_required"], [])
+        self.assertEqual((rep["outcome"], code), ("approval_required", 0))
+
+    def test_plan_lists_unchosen_primary_inputs(self):
+        # Language and visibility are the user's choice: plan shows the defaults
+        # as options instead of settling them silently.
+        fake = FakeGitHub()
+        clean = validator.Check("secrets.scan", "verified", "stubbed")
         with mock.patch.object(validator, "scan_secrets", return_value=clean):
             code, rep = self.run_cli(fake, ["plan", "--name", "demo-cli", "--type", "node"])
+        self.assertEqual(
+            rep["choices_required"],
+            [
+                {"input": "docs_locale", "default": "both", "options": ["ja", "en", "both"]},
+                {"input": "visibility", "default": "public", "options": ["public", "private"]},
+            ],
+        )
+        self.assertEqual((rep["outcome"], code), ("choice_required", 0))
+
+    def test_create_refuses_unchosen_language(self):
+        fake = FakeGitHub()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = bootstrap.main(["create", "--name", "demo-cli", "--visibility", "public", "--approve", "create"])
+        self.assertEqual(code, bootstrap.EXIT_USAGE)
+        self.assertIn("--docs-locale", err.getvalue())
         self.assertEqual(fake.writes, [])
-        self.assertEqual((rep["outcome"], code), ("approval_required", 0))
 
     def test_verify_makes_no_writes(self):
         fake = FakeGitHub(repo_exists=True)

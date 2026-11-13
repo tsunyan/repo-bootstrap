@@ -18,6 +18,7 @@
 - `dependabot.yml`: エコシステムもワークフローもない generic では作らない（作っても対象がない）
 - adopt で既存のプロジェクト（マニフェストあり）に CI を足すときは、コマンドが実在するか分からないので既定では作らず manual_action にする。`--ci on` で作る（node は scripts の有無を確かめる）
 - CodeQL default setup: 設計書は `state=configured` を確認するだけだったが、初回 push の直後に設定すると GitHub の言語検出が追いつかず、対象が `actions` だけになることがあった（このスキルの配布用リポジトリで実際に起きた）。対象言語をファイルの拡張子から決めて `languages` で明示し、すべて入っているときだけ verified にする
+- 文書の言語と公開範囲: 設計書は「解決する」とだけ書き、既定値もあった。初版のスキルは指定がないと既定値を黙って使い、配布用リポジトリを作ったときも利用者に言語を尋ねなかった。この 2 つは一次パラメータなので利用者に選んでもらう。plan は選ばれていない入力を `choices_required`（`outcome: choice_required`）として既定値つきで出し、create と adopt は指定がなければ終了コード 2 で止まる（adopt は `.repo-bootstrap.yml` の記録があればそれを使う）
 - Gitleaks の Action はテンプレートどおり `gitleaks/gitleaks-action`（個人アカウントは無料。組織ではライセンスキーが要る）
 
 ## 未実装（設計書の Phase 3 以降）

@@ -189,6 +189,26 @@ def request_from(args, mode: str, profile: dict | None = None) -> policy.Bootstr
     return policy.BootstrapRequest(**values)
 
 
+# Primary inputs (design §1.1-1). A default may be shown in plan, but create and
+# adopt never pick one silently: the user chooses, and the agent passes the choice.
+CHOICES = {"docs_locale": ("ja", "en", "both"), "visibility": policy.VISIBILITIES}
+CHOICE_FLAGS = {"docs_locale": "--docs-locale", "visibility": "--visibility"}
+
+
+def unchosen(args, profile: dict | None = None) -> list[str]:
+    return [k for k in CHOICES if getattr(args, k, None) is None and not (profile and profile.get(k))]
+
+
+def require_chosen(args, mode: str, profile: dict | None = None) -> None:
+    missing = unchosen(args, profile)
+    if missing:
+        flags = " and ".join(CHOICE_FLAGS[k] for k in missing)
+        raise policy.PolicyError(
+            f"{mode} needs {flags} chosen by the user; no default is applied here. "
+            "Run plan to see the options, ask the user, then pass the answer."
+        )
+
+
 def approvals_of(args) -> set[str]:
     given = {a.strip() for a in (args.approve or "").split(",") if a.strip()}
     unknown = given - set(APPROVALS)
@@ -684,6 +704,9 @@ def cmd_plan(args) -> tuple[Report, int]:
     else:
         rep.add("github.auth", "pending", "gh is not authenticated; GitHub state was not read")
     rep.approvals_required = policy.required_approvals(ctx.req)
+    rep.choices_required = [
+        {"input": k, "default": getattr(ctx.req, k), "options": list(CHOICES[k])} for k in unchosen(args)
+    ]
     rep.notes.append(f"plan made {len(client.writes)} GitHub writes and wrote no files")
     return rep, EXIT_FAILED if rep.failures else EXIT_OK
 
@@ -705,6 +728,7 @@ def preflight_tools(rep: Report, needs: tuple[str, ...]) -> bool:
 
 
 def cmd_create(args) -> tuple[Report, int]:
+    require_chosen(args, "create")
     client = make_client()
     login = client.login()
     target = Path(args.path or Path.cwd() / args.name).resolve()
@@ -959,6 +983,7 @@ def cmd_adopt(args) -> tuple[Report, int]:
         repo = client.repo(o, n)
         if repo:
             profile["visibility"] = "private" if repo.get("private") else "public"
+    require_chosen(args, "adopt", profile)
     has_manifest = any((target / m).exists() for m in MANIFESTS)
     ctx = Ctx(args, client, target=target)
     prepare(ctx, "adopt", profile=profile, login=login, include_starter=not has_manifest)

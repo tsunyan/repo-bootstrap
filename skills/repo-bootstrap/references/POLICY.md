@@ -7,8 +7,8 @@
 | 入力 | 既定値 | 補足 |
 |---|---|---|
 | `owner` | 認証済みのユーザー | v1 は個人所有のリポジトリだけ |
-| `visibility` | `public` | |
-| `docs_locale` | public: `both` / private: `ja` | |
+| `visibility` | `public` | 利用者が選ぶ入力。plan はこの値を選択肢のおすすめとして `choices_required` に出し、create と adopt は指定がなければ止まる |
+| `docs_locale` | public: `both` / private: `ja` | 同上（利用者が選ぶ入力） |
 | `project_type` | `generic` | 文書と設定だけ。CI は作らない |
 | `repo_kind` | public: `oss` / private: `internal` | |
 | `license` | public かつ oss: `MIT` / それ以外: `none` | `Apache-2.0` はエラー（Phase 3） |

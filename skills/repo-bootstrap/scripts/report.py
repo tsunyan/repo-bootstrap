@@ -44,6 +44,7 @@ class Report:
     features: list[dict] = field(default_factory=list)
     manual_actions: list[str] = field(default_factory=list)
     approvals_required: list[str] = field(default_factory=list)
+    choices_required: list[dict] = field(default_factory=list)
     verified_at: str | None = None
     notes: list[str] = field(default_factory=list)
 
@@ -68,6 +69,8 @@ class Report:
     def outcome(self) -> str:
         if self.failures:
             return "failed"
+        if self.choices_required:
+            return "choice_required"
         if self.approvals_required:
             return "approval_required"
         if any(c.status in ("unsupported", "manual_action", "pending") for c in self.checks):
@@ -90,6 +93,7 @@ class Report:
             "files": self.files,
             "failures": [asdict(c) for c in self.failures],
             "manual_actions": self.manual_actions,
+            "choices_required": self.choices_required,
             "approvals_required": self.approvals_required,
             "notes": self.notes,
         }
@@ -98,6 +102,7 @@ class Report:
         label = {
             "complete": "完了",
             "complete_with_constraints": "制約付き完了（下の unsupported / manual_action / pending を確認）",
+            "choice_required": "入力の選択待ち（下の入力を利用者に選んでもらう。GitHub にはまだ何も作っていません）",
             "approval_required": "承認待ち（GitHub にはまだ何も作っていません）",
             "failed": "失敗",
         }[self.outcome]
@@ -112,6 +117,12 @@ class Report:
         ]
         if self.verified_at:
             lines.append(f"- verified_at: {self.verified_at}")
+        if self.choices_required:
+            lines += ["", "## 利用者に選んでもらう入力", ""]
+            lines += [
+                f"- `{c['input']}`: {' / '.join(c['options'])}（おすすめ: `{c['default']}`）"
+                for c in self.choices_required
+            ]
         if self.approvals_required:
             lines += ["", "## 必要な承認", ""] + [f"- `{a}`" for a in self.approvals_required]
         lines += ["", "## Checks", "", "| id | status | detail |", "|---|---|---|"]
