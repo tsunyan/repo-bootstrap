@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "skill_version": "0.1.0",
+  "template_version": "7a652e92348e467b",
+  "files": {
+    ".editorconfig": {
+      "sha256": "e66deda9dad93d0295b4a60f49c03cd3b4c74bf4b3804201d462c3855a4b2036",
+      "template": "common/.editorconfig"
+    },
+    ".gitattributes": {
+      "sha256": "a510f1f6135135a02d705226f84de46446efe70de36795f80739a68a951a5852",
+      "template": "common/.gitattributes"
+    },
+    ".github/ISSUE_TEMPLATE/bug_report.yml": {
+      "sha256": "192a6a60daf43e280894b8ff814fefd8f911d95225a5af56eaadf7dc1e99067e",
+      "template": "common/issue-bug.yml.tpl"
+    },
+    ".github/PULL_REQUEST_TEMPLATE.md": {
+      "sha256": "c8a92486cb45f887c197be216cb23af49a7a52c5f324aebb66a7287f898275c4",
+      "template": "both/PULL_REQUEST_TEMPLATE.md.tpl"
+    },
+    ".github/dependabot.yml": {
+      "sha256": "5e54c7e473646e7b15345ac8dc7749922495be1cac57135cdf3cde5e4d20911f",
+      "template": "common/dependabot.yml.tpl"
+    },
+    ".gitignore": {
+      "sha256": "9f3462bea7499ccceb3a1e7060bf6651c8ce997ee54ed2d0c10e710f7f47a4e0",
+      "template": "common/.gitignore.*"
+    },
+    ".repo-bootstrap.yml": {
+      "sha256": "ae25e10528a5b2a342041db7963ff073fbc90e1562c7e142fad63cfa2aaa47e6",
+      "template": "common/repo-bootstrap.yml.tpl"
+    },
+    "AGENTS.md": {
+      "sha256": "e550c5288fe3213613de6127ba5e712b82761c9ac2223167436c73a6aae0475e",
+      "template": "both/AGENTS.md.tpl"
+    },
+    "CONTRIBUTING.md": {
+      "sha256": "76905f5fdaedadd294af7563aadb945a570dac46b3e5f14aa974c7f57b4d7791",
+      "template": "both/CONTRIBUTING.md.tpl"
+    },
+    "LICENSE": {
+      "sha256": "ddd37fc2cdfc7fc049ce6db7cf4893f34d8455e097df22601c588051a7eb8f96",
+      "template": "common/LICENSE.MIT.tpl"
+    },
+    "README.en.md": {
+      "sha256": "c448785ec4c06692bf142a299c03f6ef269b1ef253cd569acae109b80e1c5dd4",
+      "template": "both/README.en.md.tpl"
+    },
+    "README.md": {
+      "sha256": "9be78e9cfad888ebe112373effba05333cf96ead1c762ff0bcd2b71bf0925d33",
+      "template": "both/README.md.tpl"
+    },
+    "SECURITY.md": {
+      "sha256": "fa454be8db3cfa044486a2e626d2ae6ef6e1513d837080a6edad59ee6760d57a",
+      "template": "both/SECURITY.md.tpl"
+    }
+  },
+  "actions": {},
+  "github_expected": {
+    "actions.token_permissions": "apply",
+    "ci": "skipped_by_policy",
+    "codeql": "apply",
+    "coderabbit": "manual_action",
+    "dependabot.alerts": "apply",
+    "dependabot.security_updates": "apply",
+    "gitleaks": "skipped_by_policy",
+    "private_vulnerability_reporting": "apply",
+    "push_protection": "apply",
+    "repo.merge_settings": "apply",
+    "ruleset.main": "apply",
+    "secret_scanning": "apply"
+  }
+}

@@ -2,3 +2,23 @@
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+
+# Added by repo-bootstrap
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+.tmp/
+tmp/
+.cache/

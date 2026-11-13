@@ -1,0 +1,31 @@
+name: "バグ報告 / Bug report"
+description: "不具合を報告 / Report a defect (security issues privately)"
+title: "[Bug] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: "問題の内容 / What happened?"
+      description: "発生内容を記載してください（秘密情報不可）。 / Describe the issue without secrets."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "再現手順 / Steps to reproduce"
+      description: "再現操作と環境を書いてください。 / Provide steps and environment details."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "期待する動作 / Expected behavior"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "バージョン・環境 / Version and environment"
+  - type: markdown
+    attributes:
+      value: "脆弱性はSECURITY.mdに従って非公開報告してください。 / Report vulnerabilities privately under SECURITY.md."
