@@ -302,17 +302,74 @@ def apply_pvr(client: GitHubClient, o: str, n: str) -> None:
     client.put(f"repos/{o}/{n}/private-vulnerability-reporting")
 
 
-def read_codeql(client: GitHubClient, o: str, n: str) -> tuple[str, str]:
+# CodeQL default setup accepts only these language ids (REST docs, checked 2026-11-14).
+# Rust is not among them, so Rust code is not covered by default setup.
+CODEQL_EXTENSIONS = {
+    ".py": "python",
+    ".js": "javascript-typescript",
+    ".mjs": "javascript-typescript",
+    ".cjs": "javascript-typescript",
+    ".jsx": "javascript-typescript",
+    ".ts": "javascript-typescript",
+    ".tsx": "javascript-typescript",
+    ".java": "java-kotlin",
+    ".kt": "java-kotlin",
+    ".go": "go",
+    ".rb": "ruby",
+    ".cs": "csharp",
+    ".c": "c-cpp",
+    ".cc": "c-cpp",
+    ".cpp": "c-cpp",
+    ".h": "c-cpp",
+    ".hpp": "c-cpp",
+    ".swift": "swift",
+}
+CODEQL_UNSUPPORTED_EXTENSIONS = {".rs": "Rust"}
+# Git/editor config files whose suffix only names a language (e.g. .gitignore.java).
+CODEQL_IGNORED_PREFIXES = (".gitignore", ".gitattributes", ".editorconfig", ".dockerignore")
+
+
+def codeql_languages_for(paths) -> tuple[list[str], list[str]]:
+    """CodeQL languages for the files in a commit, and source languages CodeQL cannot cover.
+
+    Decided from the files themselves, not from GitHub's language statistics,
+    which lag behind the first push.
+    """
+    langs: set[str] = set()
+    uncovered: set[str] = set()
+    for path in paths:
+        p = str(path).replace("\\", "/")
+        dot = p.rfind(".")
+        ext = p[dot:].lower() if dot > p.rfind("/") else ""
+        if p.rsplit("/", 1)[-1].startswith(CODEQL_IGNORED_PREFIXES):
+            continue
+        if p.startswith(".github/workflows/") and ext in (".yml", ".yaml"):
+            langs.add("actions")
+        elif ext in CODEQL_EXTENSIONS:
+            langs.add(CODEQL_EXTENSIONS[ext])
+        elif ext in CODEQL_UNSUPPORTED_EXTENSIONS:
+            uncovered.add(CODEQL_UNSUPPORTED_EXTENSIONS[ext])
+    return sorted(langs), sorted(uncovered)
+
+
+def read_codeql(client: GitHubClient, o: str, n: str, expected: list[str] | tuple = ()) -> tuple[str, str]:
     data = client.get(f"repos/{o}/{n}/code-scanning/default-setup")
     state = data.get("state")
-    langs = ", ".join(data.get("languages") or []) or "none detected yet"
-    if state == "configured":
-        return "verified", f"CodeQL default setup configured (languages: {langs})"
-    return "failed", f"CodeQL default setup state={state}"
+    configured = sorted(data.get("languages") or [])
+    langs = ", ".join(configured) or "none"
+    if state != "configured":
+        return "failed", f"CodeQL default setup state={state}"
+    missing = sorted(set(expected) - set(configured))
+    if missing:
+        return "failed", f"CodeQL default setup is configured for {langs} but not for {', '.join(missing)}"
+    return "verified", f"CodeQL default setup configured (languages: {langs})"
 
 
-def apply_codeql(client: GitHubClient, o: str, n: str) -> None:
-    client.patch(f"repos/{o}/{n}/code-scanning/default-setup", {"state": "configured", "query_suite": "default"})
+def apply_codeql(client: GitHubClient, o: str, n: str, languages: list[str] | tuple = ()) -> None:
+    body: dict = {"state": "configured", "query_suite": "default"}
+    if languages:
+        body["languages"] = sorted(languages)
+    client.patch(f"repos/{o}/{n}/code-scanning/default-setup", body)
 
 
 def find_managed_ruleset(client: GitHubClient, o: str, n: str) -> tuple[dict | None, list[str]]:

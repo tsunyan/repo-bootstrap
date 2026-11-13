@@ -31,6 +31,8 @@ COMMIT_MESSAGE = "chore: bootstrap repository with repo-bootstrap"
 APPROVALS = ("create", "public", "license", "settings", "push")
 SETTLE_DELAY = 2.0  # seconds between read-backs of eventually consistent settings
 CI_POLL_INTERVAL = 15
+CODEQL_RETRY_DELAY = 10.0  # seconds between CodeQL attempts while GitHub prepares the repository
+CODEQL_ATTEMPTS = 6
 
 
 def make_client(*, read_only: bool = False) -> gh.GitHubClient:
@@ -534,7 +536,7 @@ def remote_phase(ctx: Ctx, *, create_repo: bool, do_push: bool) -> None:
             sha = None
 
     if "codeql" in applies and sha:
-        apply_setting(ctx, "codeql", gh.apply_codeql, gh.read_codeql)
+        codeql_step(ctx, pushed_paths(ctx, sha))
 
     verify_secret_names(ctx)
 
@@ -574,6 +576,59 @@ def remote_phase(ctx: Ctx, *, create_repo: bool, do_push: bool) -> None:
         rep.add(
             "coderabbit", "applied", "App is installed and .coderabbit.yaml is present; no review has been observed yet"
         )
+
+
+def pushed_paths(ctx: Ctx, sha: str) -> list[str]:
+    """Paths in the commit that GitHub has; from the local clone when there is one."""
+    if ctx.target and is_git_repo(ctx.target):
+        out = git(ctx.target, "ls-tree", "-r", "--name-only", sha, check=False)
+        if out.returncode == 0:
+            return out.stdout.splitlines()
+    try:
+        return gh.tree_paths(ctx.client, ctx.req.owner, ctx.req.name, sha)
+    except gh.GitHubError:
+        return [f.path for f in ctx.files]
+
+
+def codeql_detail(detail: str, uncovered: list[str]) -> str:
+    if uncovered:
+        detail += f". Not covered by CodeQL default setup: {', '.join(uncovered)} (lint and tests in CI only)"
+    return detail
+
+
+def codeql_step(ctx: Ctx, paths: list[str]) -> None:
+    """Configure CodeQL default setup for the languages that are actually in the commit.
+
+    Right after the first push GitHub may not have detected the languages yet
+    (default setup would then pick only some of them), or may still be
+    validating a configuration (409/422). Name the languages explicitly and
+    retry a few times; verified only when every expected language is covered.
+    """
+    o, n, client = ctx.req.owner, ctx.req.name, ctx.client
+    expected, uncovered = gh.codeql_languages_for(paths)
+    try:
+        status, detail = gh.read_codeql(client, o, n, expected)
+        if status == "verified":
+            ctx.report.add("codeql", "verified", codeql_detail(detail + " (already set)", uncovered))
+            return
+        for attempt in range(1, CODEQL_ATTEMPTS + 1):
+            try:
+                gh.apply_codeql(client, o, n, expected)
+            except gh.GitHubError as exc:
+                if exc.status in (409, 422) and attempt < CODEQL_ATTEMPTS:
+                    time.sleep(CODEQL_RETRY_DELAY)
+                    continue
+                raise
+            status, detail = _settle(lambda: gh.read_codeql(client, o, n, expected))
+            if status == "verified" or attempt == CODEQL_ATTEMPTS:
+                break
+            time.sleep(CODEQL_RETRY_DELAY)
+        if status != "verified":
+            detail = "Write accepted, but read-back disagrees: " + detail
+        ctx.report.add("codeql", status, codeql_detail(detail, uncovered))
+    except gh.GitHubError as exc:
+        retry = f". Retry with `bootstrap.py repair --repo {o}/{n}`"
+        ctx.report.add("codeql", "failed", gh.describe_error(exc) + retry)
 
 
 def verify_secret_names(ctx: Ctx) -> None:
@@ -830,7 +885,10 @@ def cmd_verify(args) -> tuple[Report, int]:
         if fid in applies:
             _read_only(ctx, fid, lambda read_fn=read_fn: read_fn(client, o, n))
     if "codeql" in applies:
-        _read_only(ctx, "codeql", lambda: gh.read_codeql(client, o, n))
+        expected_langs, uncovered = gh.codeql_languages_for(present)
+        _read_only(ctx, "codeql", lambda: gh.read_codeql(client, o, n, expected_langs))
+        check = next(c for c in rep.checks if c.id == "codeql")
+        rep.add("codeql", check.status, codeql_detail(check.detail, uncovered))
     if "ruleset.main" in applies:
         _read_only(ctx, "ruleset.main", lambda: gh.read_ruleset(client, o, n, r.ruleset))
     if "coderabbit" in applies:

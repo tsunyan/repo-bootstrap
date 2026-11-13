@@ -21,7 +21,7 @@
 | Dependabot security updates | `PUT /repos/{o}/{r}/automated-security-fixes` | 同じパスを GET | `enabled=true` かつ `paused=false` |
 | Secret scanning / push protection | `PATCH /repos/{o}/{r}` の `security_and_analysis` | `GET /repos/{o}/{r}` | 各 `status=enabled` |
 | Private vulnerability reporting | `PUT /repos/{o}/{r}/private-vulnerability-reporting` | 同じパスを GET | `enabled=true` |
-| CodeQL default setup | `PATCH /repos/{o}/{r}/code-scanning/default-setup`（`state: configured`） | 同じパスを GET | `state=configured` |
+| CodeQL default setup | `PATCH /repos/{o}/{r}/code-scanning/default-setup`（`state: configured` と `languages`） | 同じパスを GET | `state=configured` で、コミット内のファイルから決めた言語がすべて `languages` に入っている |
 | Ruleset | `POST /repos/{o}/{r}/rulesets`、管理対象（名前が `repo-bootstrap: default branch`）だけ `PUT` で更新 | `GET /repos/{o}/{r}/rulesets/{id}` | `enforcement=active` と規則の種類 |
 | 初回 CI | push | `GET /repos/{o}/{r}/actions/runs?head_sha=…` | 各ワークフローの run が `completed` かつ `success` |
 | 必須チェック名（strict） | — | `GET /repos/{o}/{r}/actions/runs/{id}/jobs` | 成功したジョブ名だけを Ruleset に入れる |
@@ -30,3 +30,12 @@
 | Action の SHA | — | `GET /repos/{action}/releases/latest` → `git/ref/tags/{tag}` →（注釈付きなら）`git/tags/{sha}` | 40 桁の SHA。`dtolnay/rust-toolchain` はリリースがないので `branches/stable` |
 
 他人が作った Ruleset は変更せず、名前だけ報告する。
+
+## CodeQL の対象言語
+
+`languages` を省くと、GitHub はその時点で検出済みの言語だけを選ぶ。初回 push の直後は言語の検出が追いつかず、たとえば Python のリポジトリでも `actions` だけになることがある。そのため対象言語は GitHub の言語統計ではなく、push したコミットのファイルの拡張子から決めて明示する（`github_api.codeql_languages_for`）。
+
+- 受け付ける値（REST のドキュメント、2026-11-14 確認）: `actions`, `c-cpp`, `csharp`, `go`, `java-kotlin`, `javascript-typescript`, `python`, `ruby`, `swift`
+- Rust は含まれない。Rust のファイルがあれば「CodeQL の対象外（CI の lint とテストだけ）」とレポートに書く
+- 409（別の設定を検証中）と 422（リポジトリの準備ができていない）は、10 秒おきに最大 6 回まで再試行する
+- `.tpl` などのテンプレートは数えない

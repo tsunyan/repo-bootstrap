@@ -17,6 +17,7 @@
 - レポートの置き場所: `<作業ツリー>/.git/repo-bootstrap/`。リポジトリにはコミットされない
 - `dependabot.yml`: エコシステムもワークフローもない generic では作らない（作っても対象がない）
 - adopt で既存のプロジェクト（マニフェストあり）に CI を足すときは、コマンドが実在するか分からないので既定では作らず manual_action にする。`--ci on` で作る（node は scripts の有無を確かめる）
+- CodeQL default setup: 設計書は `state=configured` を確認するだけだったが、初回 push の直後に設定すると GitHub の言語検出が追いつかず、対象が `actions` だけになることがあった（このスキルの配布用リポジトリで実際に起きた）。対象言語をファイルの拡張子から決めて `languages` で明示し、すべて入っているときだけ verified にする
 - Gitleaks の Action はテンプレートどおり `gitleaks/gitleaks-action`（個人アカウントは無料。組織ではライセンスキーが要る）
 
 ## 未実装（設計書の Phase 3 以降）

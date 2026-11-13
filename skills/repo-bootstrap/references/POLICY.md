@@ -29,7 +29,7 @@
 | Dependabot version updates（`dependabot.yml`） | 生成 | 生成 | |
 | GitHub secret scanning | apply | unsupported | Gitleaks のワークフロー（Push 後と PR で検出。Push 自体は止めない） |
 | Push protection（リポジトリ） | apply | unsupported | 同上 |
-| CodeQL default setup | apply（初回 push の後） | unsupported | 言語別の lint とテスト。**同等ではない** |
+| CodeQL default setup | apply（初回 push の後。対象言語はコミット内のファイルから決めて明示する。Rust は対象外） | unsupported | 言語別の lint とテスト。**同等ではない** |
 | Ruleset | apply（初回 push の後） | unsupported | なし。GitHub はブランチを守らない |
 | Private vulnerability reporting | apply（push 前に read-back 必須） | 使わない | SECURITY.md に既存の非公開の連絡経路を書く |
 | CodeRabbit | App の導入を確認できたときだけ `.coderabbit.yaml` を生成。それ以外は manual_action | manual_action（非公開コードを外部に送るため） | |

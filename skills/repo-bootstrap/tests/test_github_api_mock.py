@@ -174,6 +174,51 @@ class Commands(unittest.TestCase):
         self.assertEqual(statuses["codeql"], "unsupported")
         self.assertEqual(statuses["ruleset.main"], "unsupported")
 
+    def test_codeql_languages_come_from_the_files(self):
+        langs, uncovered = gh.codeql_languages_for(
+            [
+                ".github/workflows/checks.yml",
+                "skills/x/scripts/a.py",
+                "src/index.ts",
+                "assets/templates/starter/java-maven/App.java.tpl",
+                "assets/templates/common/.gitignore.java",
+                "web/.eslintrc.cjs",
+                "src/main.rs",
+                "README.md",
+            ]
+        )
+        self.assertEqual(langs, ["actions", "javascript-typescript", "python"])
+        self.assertEqual(uncovered, ["Rust"])
+
+    def test_codeql_names_languages_and_retries(self):
+        """Default setup made before language detection must not stay at actions only."""
+        fake = FakeGitHub(repo_exists=True)
+        fake.codeql, fake.codeql_languages = "configured", ["actions"]
+        fake.tree = [".github/workflows/checks.yml", "scripts/bootstrap.py", "src/main.rs"]
+        fake.queue["repos/tsunyan/demo-cli/code-scanning/default-setup"] = [
+            http(200, {"state": "configured", "languages": ["actions"]}),  # first read
+            http(422, {"message": "not in the required state"}),  # first PATCH
+        ]
+        ctx = self._ctx(fake, visibility="public", project_type="generic")
+        bootstrap.CODEQL_RETRY_DELAY = 0
+        bootstrap.codeql_step(ctx, bootstrap.pushed_paths(ctx, "c" * 40))
+        check = next(c for c in ctx.report.checks if c.id == "codeql")
+        self.assertEqual(check.status, "verified", check.detail)
+        self.assertIn("python", check.detail)
+        self.assertIn("Not covered by CodeQL default setup: Rust", check.detail)
+        patches = [b for m, p, b in fake.calls if m == "PATCH" and p.endswith("default-setup")]
+        self.assertEqual(len(patches), 2)
+        self.assertEqual(patches[-1]["languages"], ["actions", "python"])
+
+    def test_verify_flags_missing_codeql_language(self):
+        fake = FakeGitHub()
+        fake.codeql, fake.codeql_languages = "configured", ["actions"]
+        client = gh.GitHubClient(fake)
+        fake.repo = fake._new_repo("demo-cli", False)
+        status, detail = gh.read_codeql(client, "tsunyan", "demo-cli", ["actions", "python"])
+        self.assertEqual(status, "failed")
+        self.assertIn("not for python", detail)
+
     def test_visibility_is_never_switched(self):
         """T17: repair does not turn a private repository public."""
         fake = FakeGitHub(repo_exists=True, private=True)

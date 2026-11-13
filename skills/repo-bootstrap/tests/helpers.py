@@ -63,6 +63,8 @@ class FakeGitHub:
         self.fixes = False
         self.token = {"default_workflow_permissions": "write", "can_approve_pull_request_reviews": True}
         self.codeql = "not-configured"
+        self.codeql_languages: list[str] = []
+        self.tree: list[str] = []
         self.rulesets: list[dict] = []
         self.queue: dict[str, list[str]] = {}
 
@@ -140,8 +142,11 @@ class FakeGitHub:
         if path == f"{o_n}/code-scanning/default-setup":
             if method == "PATCH":
                 self.codeql = "configured"
+                # Like GitHub right after the first push: without explicit
+                # languages it only picks what it has detected so far.
+                self.codeql_languages = body.get("languages") or ["actions"]
                 return http(202, {"run_id": 1})
-            return http(200, {"state": self.codeql, "languages": ["actions"]})
+            return http(200, {"state": self.codeql, "languages": self.codeql_languages})
         if path == f"{o_n}/rulesets":
             if method == "POST":
                 rs = dict(body, id=len(self.rulesets) + 1)
@@ -151,6 +156,8 @@ class FakeGitHub:
         if path.startswith(f"{o_n}/rulesets/"):
             rid = int(path.rsplit("/", 1)[1])
             return http(200, next(r for r in self.rulesets if r["id"] == rid))
+        if path.startswith(f"{o_n}/git/trees/"):
+            return http(200, {"tree": [{"path": t, "type": "blob"} for t in self.tree]})
         if path.startswith(f"{o_n}/commits/"):
             return http(200, {"sha": "c" * 40})
         if path == f"{o_n}/actions/runs":
