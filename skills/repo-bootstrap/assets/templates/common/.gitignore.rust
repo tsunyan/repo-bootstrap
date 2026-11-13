@@ -1,0 +1,2 @@
+/target/
+# Keep Cargo.lock for application projects; generator chooses library policy explicitly.

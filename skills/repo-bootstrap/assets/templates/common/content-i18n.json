@@ -1,0 +1,32 @@
+{
+  "ja": {
+    "DOCS_LANGUAGE_POLICY_JA": "日本語で記述してください",
+    "DOCS_LANGUAGE_POLICY_EN": "in Japanese"
+  },
+  "en": {
+    "DOCS_LANGUAGE_POLICY_JA": "英語で記述してください",
+    "DOCS_LANGUAGE_POLICY_EN": "in English"
+  },
+  "both": {
+    "DOCS_LANGUAGE_POLICY_JA": "日本語と英語の両方で内容を一致させて記述してください",
+    "DOCS_LANGUAGE_POLICY_EN": "in both Japanese and English with equivalent meaning"
+  },
+  "security_contact": {
+    "public_ja": "GitHubの当該リポジトリの **Security → Advisories → Report a vulnerability** から、非公開で報告してください。",
+    "public_en": "Use **Security → Advisories → Report a vulnerability** in this GitHub repository to send a private report.",
+    "private_ja": "このリポジトリは非公開です。既存の非公開連絡手段を通じてメンテナーへ報告してください。連絡経路が不明な場合は、脆弱性の詳細を記載せず、安全な連絡手段の案内だけを依頼してください。",
+    "private_en": "This repository is private. Contact the maintainer through an established private channel. If no channel is available, ask for a secure reporting method without disclosing vulnerability details.",
+    "email_ja": "セキュリティ連絡先 **{{SECURITY_EMAIL}}** に非公開で報告してください。",
+    "email_en": "Report privately to **{{SECURITY_EMAIL}}**."
+  },
+  "license_statement": {
+    "MIT_ja": "[MIT License](LICENSE) で公開します。",
+    "MIT_en": "Released under the [MIT License](LICENSE).",
+    "none_ja": "ライセンスは付与していません。著作権者の許可なく利用・改変・再配布することはできません。",
+    "none_en": "No license is granted. You may not use, modify, or redistribute this work without the copyright holder's permission."
+  },
+  "_notes": {
+    "public": "public_* is rendered only after private vulnerability reporting has been enabled and read back. The push is held until then.",
+    "email": "email_* is rendered only when the owner explicitly supplied the address for vulnerability reports."
+  }
+}

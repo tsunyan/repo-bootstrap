@@ -1,0 +1,12 @@
+- package-ecosystem: {{DEPENDABOT_ECOSYSTEM}}
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    minor-and-patch:
+      patterns:
+        - '*'
+      update-types:
+        - minor
+        - patch

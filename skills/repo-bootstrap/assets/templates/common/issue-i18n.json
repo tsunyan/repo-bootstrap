@@ -1,0 +1,35 @@
+{
+  "ja": {
+    "BUG_REPORT_NAME": "バグ報告",
+    "BUG_REPORT_DESCRIPTION": "不具合を報告します（脆弱性は非公開で報告してください）",
+    "BUG_REPORT_PROBLEM_LABEL": "問題の内容",
+    "BUG_REPORT_PROBLEM_HELP": "実際に発生した不具合を説明してください。秘密情報は記載しないでください。",
+    "BUG_REPORT_STEPS_LABEL": "再現手順",
+    "BUG_REPORT_STEPS_HELP": "問題を再現するための具体的な操作と環境を記載してください。",
+    "BUG_REPORT_EXPECTED_LABEL": "期待する動作",
+    "BUG_REPORT_VERSION_LABEL": "バージョン・実行環境",
+    "BUG_REPORT_SECURITY_NOTICE": "脆弱性や認証情報の漏洩はこの公開フォームに記載せず、SECURITY.mdの非公開報告手順に従ってください。"
+  },
+  "en": {
+    "BUG_REPORT_NAME": "Bug report",
+    "BUG_REPORT_DESCRIPTION": "Report a defect; disclose security issues privately",
+    "BUG_REPORT_PROBLEM_LABEL": "What happened?",
+    "BUG_REPORT_PROBLEM_HELP": "Describe the observed issue. Do not include secrets or sensitive data.",
+    "BUG_REPORT_STEPS_LABEL": "Steps to reproduce",
+    "BUG_REPORT_STEPS_HELP": "Provide specific steps and relevant environment details.",
+    "BUG_REPORT_EXPECTED_LABEL": "Expected behavior",
+    "BUG_REPORT_VERSION_LABEL": "Version and environment",
+    "BUG_REPORT_SECURITY_NOTICE": "Do not post vulnerabilities or credentials in this public form. Follow the private reporting instructions in SECURITY.md."
+  },
+  "both": {
+    "BUG_REPORT_NAME": "バグ報告 / Bug report",
+    "BUG_REPORT_DESCRIPTION": "不具合を報告 / Report a defect (security issues privately)",
+    "BUG_REPORT_PROBLEM_LABEL": "問題の内容 / What happened?",
+    "BUG_REPORT_PROBLEM_HELP": "発生内容を記載してください（秘密情報不可）。 / Describe the issue without secrets.",
+    "BUG_REPORT_STEPS_LABEL": "再現手順 / Steps to reproduce",
+    "BUG_REPORT_STEPS_HELP": "再現操作と環境を書いてください。 / Provide steps and environment details.",
+    "BUG_REPORT_EXPECTED_LABEL": "期待する動作 / Expected behavior",
+    "BUG_REPORT_VERSION_LABEL": "バージョン・環境 / Version and environment",
+    "BUG_REPORT_SECURITY_NOTICE": "脆弱性はSECURITY.mdに従って非公開報告してください。 / Report vulnerabilities privately under SECURITY.md."
+  }
+}

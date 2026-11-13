@@ -1,0 +1,4 @@
+# Python caches from running the skill's tests
+__pycache__/
+.pytest_cache/
+.ruff_cache/
