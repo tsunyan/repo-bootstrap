@@ -6,7 +6,7 @@
 
 ## Overview
 
-An agent skill that creates new GitHub repositories with a standard setup: README, AGENTS, SECURITY, CONTRIBUTING, CI, Dependabot, and GitHub security settings. You choose the documentation language (Japanese, English, or both) and the visibility (public or private); features that personal GitHub Free does not offer are reported with their fallbacks and limits. The skill lives in skills/repo-bootstrap. Copy it to the skills folder of an agent that supports the Agent Skills format (SKILL.md), such as ~/.claude/skills/ for Claude Code or ~/.agents/skills/ for Codex. This repository itself was created with this skill.
+An agent skill that creates new GitHub repositories with a standard setup: README, AGENTS, SECURITY, CONTRIBUTING, CI, Dependabot, and GitHub security settings. You choose the documentation language (Japanese, English, or both with either language first) and the visibility (public or private); features that personal GitHub Free does not offer are reported with their fallbacks and limits. The skill lives in skills/repo-bootstrap. Copy it to the skills folder of an agent that supports the Agent Skills format (SKILL.md), such as ~/.claude/skills/ for Claude Code or ~/.agents/skills/ for Codex. This repository itself was created with this skill.
 
 ## Requirements
 

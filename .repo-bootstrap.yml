@@ -4,7 +4,7 @@ schema_version: 1
 owner: tsunyan
 project_name: repo-bootstrap
 visibility: public
-docs_locale: both
+docs_locale: ja-en
 project_type: generic
 repo_kind: oss
 license: MIT
@@ -13,8 +13,8 @@ copyright_year: 2026
 default_branch: main
 description_ja: "GitHub リポジトリを安全な標準構成で作る AI エージェント向けのスキル"
 description_en: "An agent skill that creates GitHub repositories with secure, standard defaults"
-overview_ja: "新しい GitHub リポジトリを、README・AGENTS・SECURITY・CONTRIBUTING・CI・Dependabot と GitHub のセキュリティ設定を備えた標準構成で作る、AI エージェント向けのスキルです。文書の言語（日本語・英語・日英両方）と公開範囲（Public・Private）を選べ、個人の GitHub Free で使えない機能は代替と制約を報告します。スキル本体は skills/repo-bootstrap にあり、Agent Skills の形式（SKILL.md）に対応したエージェントのスキル用フォルダ（Claude Code は ~/.claude/skills/、Codex は ~/.agents/skills/）にコピーして使います。このリポジトリ自体も、このスキルで作りました。"
-overview_en: "An agent skill that creates new GitHub repositories with a standard setup: README, AGENTS, SECURITY, CONTRIBUTING, CI, Dependabot, and GitHub security settings. You choose the documentation language (Japanese, English, or both) and the visibility (public or private); features that personal GitHub Free does not offer are reported with their fallbacks and limits. The skill lives in skills/repo-bootstrap. Copy it to the skills folder of an agent that supports the Agent Skills format (SKILL.md), such as ~/.claude/skills/ for Claude Code or ~/.agents/skills/ for Codex. This repository itself was created with this skill."
+overview_ja: "新しい GitHub リポジトリを、README・AGENTS・SECURITY・CONTRIBUTING・CI・Dependabot と GitHub のセキュリティ設定を備えた標準構成で作る、AI エージェント向けのスキルです。文書の言語（日本語・英語・日本語が主の日英併記・英語が主の英日併記）と公開範囲（Public・Private）を選べ、個人の GitHub Free で使えない機能は代替と制約を報告します。スキル本体は skills/repo-bootstrap にあり、Agent Skills の形式（SKILL.md）に対応したエージェントのスキル用フォルダ（Claude Code は ~/.claude/skills/、Codex は ~/.agents/skills/）にコピーして使います。このリポジトリ自体も、このスキルで作りました。"
+overview_en: "An agent skill that creates new GitHub repositories with a standard setup: README, AGENTS, SECURITY, CONTRIBUTING, CI, Dependabot, and GitHub security settings. You choose the documentation language (Japanese, English, or both with either language first) and the visibility (public or private); features that personal GitHub Free does not offer are reported with their fallbacks and limits. The skill lives in skills/repo-bootstrap. Copy it to the skills folder of an agent that supports the Agent Skills format (SKILL.md), such as ~/.claude/skills/ for Claude Code or ~/.agents/skills/ for Codex. This repository itself was created with this skill."
 security_profile: baseline
 security_contact: private-reporting
 security_email: null

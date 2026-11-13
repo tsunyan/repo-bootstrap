@@ -30,7 +30,7 @@
 
 ## ドキュメントと言語
 
-- 仕様と外部向け文書は日本語と英語の両方で内容を一致させて記述してください。
+- 仕様と外部向け文書は日本語と英語の両方で内容を一致させて記述してください（日本語が主。README.md は日本語、README.en.md は英語で、ほかの文書は日本語の節を先に置く）。
 - 振る舞いの変更では、必要に応じてREADME・テスト・サンプルを更新する。
 - Gitコミットの形式は既存の運用に合わせる。規約がなければ短い命令形の英語にする。
 
@@ -72,7 +72,7 @@ These instructions apply to coding agents working in this repository.
 
 ## Documentation and language
 
-- Write project documentation in both Japanese and English with equivalent meaning.
+- Write project documentation in both Japanese and English with equivalent meaning (Japanese first: README.md is Japanese, README.en.md is English, and other documents put the Japanese section first).
 - Update the README, tests, and examples when behavior changes.
 - Follow existing commit conventions; otherwise use short imperative English messages.
 

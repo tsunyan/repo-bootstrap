@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "skill_version": "0.1.0",
-  "template_version": "7a652e92348e467b",
+  "template_version": "9733b0395278c4fb",
   "files": {
     ".editorconfig": {
       "sha256": "e66deda9dad93d0295b4a60f49c03cd3b4c74bf4b3804201d462c3855a4b2036",
@@ -28,11 +28,11 @@
       "template": "common/.gitignore.*"
     },
     ".repo-bootstrap.yml": {
-      "sha256": "ae25e10528a5b2a342041db7963ff073fbc90e1562c7e142fad63cfa2aaa47e6",
+      "sha256": "f06cf6c43b9d29eae6b41b07afe40541af6b77fab32c6bd1215c56eeb6166bc8",
       "template": "common/repo-bootstrap.yml.tpl"
     },
     "AGENTS.md": {
-      "sha256": "e550c5288fe3213613de6127ba5e712b82761c9ac2223167436c73a6aae0475e",
+      "sha256": "505f18238aef21c88f22d86067ca0b9c6d138e7fb97dca72cd3bc0d20d326101",
       "template": "both/AGENTS.md.tpl"
     },
     "CONTRIBUTING.md": {
@@ -44,11 +44,11 @@
       "template": "common/LICENSE.MIT.tpl"
     },
     "README.en.md": {
-      "sha256": "c448785ec4c06692bf142a299c03f6ef269b1ef253cd569acae109b80e1c5dd4",
+      "sha256": "30787f397a0f8eed850cee5d81fb996ac9692026f58de85fed9a5b7dfcb492a7",
       "template": "both/README.en.md.tpl"
     },
     "README.md": {
-      "sha256": "9be78e9cfad888ebe112373effba05333cf96ead1c762ff0bcd2b71bf0925d33",
+      "sha256": "26c4595ba0c78afa260f59121867ae7fd6b67ec55802bbb6295e9cb587677fc6",
       "template": "both/README.md.tpl"
     },
     "SECURITY.md": {
